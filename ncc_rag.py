@@ -4,30 +4,15 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain.prompts import PromptTemplate
 from operator import itemgetter
 from langchain.load import dumps, loads
-
 from langchain.prompts import ChatPromptTemplate
-import umap
-import pandas as pd
-import numpy as np
 from typing import Dict, List, Optional, Tuple
 from langchain_community.document_loaders.recursive_url_loader import RecursiveUrlLoader
-import tiktoken
-import matplotlib.pyplot as plt
-from langchain import hub
-from langchain_community.embeddings import HuggingFaceHubEmbeddings
-from langchain_community.document_transformers import LongContextReorder
-import lark
 from langchain.retrievers.self_query.base import SelfQueryRetriever
-from langchain.chains.query_constructor.base import AttributeInfo
-from langchain_core.documents import Document
 import os
 from langchain_groq import ChatGroq
 from langchain.memory import ConversationBufferMemory
 import ollama
 from langchain_core.pydantic_v1 import BaseModel
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import DirectoryLoader
-from langchain_community.document_loaders import TextLoader
 from langchain.chains import RetrievalQA
 from langchain_community.chat_models import ChatOllama
 from langchain_community.embeddings import OllamaEmbeddings
@@ -38,16 +23,12 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains import create_history_aware_retriever
 from langchain_core.prompts import MessagesPlaceholder
-from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain
 from langchain_core.messages import AIMessage, HumanMessage
 from pathlib import Path
 from typing import List, Optional, Any
 import time
-from langchain.text_splitter import (
-    Language,
-    RecursiveCharacterTextSplitter,
-)
+
 load_dotenv()
 # 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
 # GROQ_API_KEY = "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"
