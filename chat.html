@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NCC Chatbot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f0f0f0;
+      margin: 0;
+    }
+    .chat-container {
+      width: 400px;
+      height: 500px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .chat-header {
+      background-color: #004479;
+      color: #fff;
+      padding: 10px;
+      text-align: center;
+      border-radius: 10px 10px 0 0;
+    }
+    .chat-messages {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .chat-input {
+      display: flex;
+      padding: 10px;
+      border-radius: 0 0 10px 10px;
+      background-color: #f0f0f0;
+    }
+    .chat-input input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #fff;
+    }
+    .chat-input button {
+      padding: 10px 15px;
+      background-color: #004479;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      margin-left: 10px;
+      cursor: pointer;
+    }
+    .chat-input button:hover {
+      background-color: #00335d;
+    }
+    .message {
+      margin-bottom: 10px;
+      word-wrap: break-word;
+      display: inline-block;
+      padding: 10px;
+      border-radius: 16px;
+    }
+    .message.received {
+      background-color: #f2f7fb;
+      color: #000;
+      align-self: flex-start;
+    }
+    .message.sent {
+      background-color: #004479;
+      color: #fff;
+      align-self: flex-end;
+    }
+    .timestamp {
+      font-size: 0.75em;
+      color: #888;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">NCC Chatbot</div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="message received">Hello! How can I help you today?</div>
+    </div>
+    <div class="chat-input">
+      <input type="text" id="messageInput" placeholder="Type a message..." aria-label="Type a message" />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    let chatHistory = [];
+
+    async function sendMessage() {
+      const messageInput = document.getElementById("messageInput");
+      const chatMessages = document.getElementById("chatMessages");
+
+      if (messageInput.value.trim() !== "") {
+        const userMessage = messageInput.value;
+
+        // Display user message
+        const userMessageDiv = document.createElement("div");
+        userMessageDiv.className = "message sent";
+        userMessageDiv.textContent = userMessage;
+        chatMessages.appendChild(userMessageDiv);
+
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        messageInput.value = "";
+
+        // Send message to server
+        const response = await fetch("http://127.0.0.1:5000/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message: userMessage,
+            history: chatHistory,
+          }),
+        });
+
+        const data = await response.json();
+        const botResponse = data.response;
+
+        // Display bot response
+        const botMessageDiv = document.createElement("div");
+        botMessageDiv.className = "message received";
+        botMessageDiv.textContent = botResponse;
+        chatMessages.appendChild(botMessageDiv);
+
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // Update chat history
+        chatHistory = data.history;
+      }
+    }
+
+    document
+      .getElementById("messageInput")
+      .addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+          sendMessage();
+        }
+      });
+  </script>
+</body>
+</html>
