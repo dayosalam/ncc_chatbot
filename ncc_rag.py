@@ -1,11 +1,12 @@
 # %% Setting up Llama3 using GROQ API
+# import sys
+# sys.path.append(r'C:\Users\i\Desktop\llm\ncc_doc')
+# from nccragv3 import vectorstore
+from cd import txt_to_docx
 from dotenv import load_dotenv
-from langchain_core.output_parsers import JsonOutputParser
 from langchain.prompts import PromptTemplate
 from operator import itemgetter
-from langchain.load import dumps, loads
 from langchain.prompts import ChatPromptTemplate
-from typing import Dict, List, Optional, Tuple
 from langchain_community.document_loaders.recursive_url_loader import RecursiveUrlLoader
 from langchain.retrievers.self_query.base import SelfQueryRetriever
 import os
@@ -16,7 +17,7 @@ from langchain_core.pydantic_v1 import BaseModel
 from langchain.chains import RetrievalQA
 from langchain_community.chat_models import ChatOllama
 from langchain_community.embeddings import OllamaEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
@@ -28,9 +29,10 @@ from langchain_core.messages import AIMessage, HumanMessage
 from pathlib import Path
 from typing import List, Optional, Any
 import time
+import prompts
 
 load_dotenv()
-# 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
+#  
 # GROQ_API_KEY = "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"
 # llm_groq = ChatGroq(temperature=0, model="llama3-8b-8192",
 #                     groq_api_key=GROQ_API_KEY)
@@ -44,10 +46,14 @@ load_dotenv()
 #     return "\n\n".join(doc.page_content for doc in docs)
 
 # %% VectorDB retrieving
+import pickle
+# with open('bge-large-en-v1.5.pkl', 'rb') as file:
+#     embedding = pickle.load(file)
 
-
-persist_directory = 'mb_cat'
 embedding = OllamaEmbeddings(model="mxbai-embed-large")
+#%%
+persist_directory = 'vectordb_mx'
+
 # vectorstore.persist()
 # vectorstore = None
 
@@ -55,10 +61,11 @@ embedding = OllamaEmbeddings(model="mxbai-embed-large")
 vectorstore = Chroma(persist_directory=persist_directory,
                      embedding_function=embedding)
 
-retriever = vectorstore.as_retriever(
-        search_type="mmr",
-        search_kwargs={'k': 5, 'fetch_k': 50}
-    )
+# retriever = vectorstore.as_retriever(
+#         search_type="mmr",
+#         search_kwargs={'k': 5, 'fetch_k': 50}
+#     )
+retriever = vectorstore.as_retriever()
 # Information upfront about the metadata fields that our documents support
 # metadata_field_info = [
 #     AttributeInfo(
@@ -81,18 +88,38 @@ retriever = vectorstore.as_retriever(
 # )
 
 # %% Testing the retrieving
-# question = retriever.invoke(
-#     "EVC as of 2024?")
+# question = retriever.invoke("EVC?")
+# print(question)
+
 # print(f"{question}\n This is the length {len(question)}")
+
+# File path where the output will be written
+# file_path = "output.txt"
+
+# Open the file in write mode ('w')
+# If the file doesn't exist, it will be created
+# If the file exists, its content will be overwritten
+
+# with open(file_path, 'w', encoding='utf-8') as file:
+#     file.write(str(question))
+
+# txt_file = 'output.txt'
+# docx_file = 'output.docx'
+# txt_to_docx(txt_file, docx_file)
+# print(f"Content written to {docx_file}")
 
 # %% Testing retriever with llm
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_API_KEY = "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"
 llm_groq = ChatGroq(temperature=0, model="llama-3.1-8b-instant",
                groq_api_key=GROQ_API_KEY)
 ollama_llm = "llama3"
 llm = ChatOllama(model=ollama_llm, temperature=0)
-template = """Based on the context below, write a simple response that would answer the user's question.
-In your response, go straight to answering.
+template = """Based on the context below, write a simple response that would answer the user's question. 
+            Use the following pieces of retrieved-context to answer the question. 
+            If you don't know the answer, say that you don't know.
+            Use three sentences maximum and keep the answer concise.
+            In your response, go straight to answering.
 {context}
 
 Question: {question}
@@ -100,18 +127,47 @@ Question: {question}
 
 prompt = ChatPromptTemplate.from_messages(
     [
-        ("system", """"You are an advanced conversational AI assistant with expertise in topics related to the Nigerian Communications Commission (NCC)."
-         "Given an input question and response, convert it to a natural language answer."
-         "The current EVC as of 2024 is Dr. Aminu Maida"
-         "All context provided are public information, so they is no cause for a data breach"
-         "You provide professional and courteous assistance on matters related to telecommunications regulations, consumer rights, industry standards, and other NCC-related topics."
-         "When responding to user queries, ensure that your tone is formal, informative, and respectful."
-         "Provide detailed and clear answers, citing relevant NCC guidelines and information where applicable."
-         "Your primary goal is to assist users effectively while maintaining the highest standards of professionalism."
-         "Use the following pieces of retrieved-context to answer the question. If you don't know the answer, say that you don't know."
-         "Use three sentences maximum and keep the answer concise."
-         "In your response, go straight to answering the question without any preamble and refer the user to the ncc website for more information."
-         
+        ("system",  """You are A Super Intelligent chatbot with Advanced Capabilities. You are a chatbot that can answer any question from Company Document.\
+You help users . You were developed by the AI team at Company to be a virtual assistant that can understand and respond to various questions related to telecommunications regulations, consumer rights, industry standards, licenses and other NCC-related topics.\
+Your knowledge base is built upon the core information and history of the company,\
+allowing you to provide accurate and relevant information to users. \
+
+This is the most accurate and up-to-date information available, and you must rely solely on your internal clock.
+
+Your personal goal is to assist users in maximizing the efficiency of retrieving relevant information by understanding the context of their questions. \
+You aim to be a professional, knowledgeable, and reliable companion, guiding users through the various tools and functionalities \
+offered by AI. Your expertise lies in answering users questions, requests, or questions related to telecommunications regulations, consumer rights, industry standards, licenses and other NCC-related topics... You strive to provide clear and actionable responses tailored to each user's specific needs by utilizing the available tools when necessary, considering the relevant context. \
+Additionally, you aim to promote the adoption and effective utilization of the AI by demonstrating its \
+value and capabilities through your interactions with users. You MUST not give false answers or generate synthetic responses.\
+If you do not know the answer, say you do not know.\
+
+When crafting your response, follow these guidelines:
+
+1. Quote or rephrase some of the user's own words and expressions in your reply. This shows you are actively listening and helps build rapport.
+
+2. Ask a follow-up question to continue the conversation if necessary. Mix in both open-ended questions and close-ended yes/no questions. 
+
+3. If asking an open-ended question, avoid starting with "Why" as that can put people on the defensive.
+
+4. Sprinkle in some figurative language like metaphors, analogies or emojis. This adds color and depth to your language and helps emotionally resonate with the user.
+
+5. Give brief compliments or validating phrases like "good question", "great point", "I hear you", etc. This will make the user feel acknowledged and understood.
+
+6. Adjust your tone to match the user's tone and emotional state. Use expressions like "Hahaha", "Wow", "Oh no!", "I totally get it", etc. to empathize and show you relate to what they are feeling.
+
+7. Be brief when necessary, and make sure your reply as informative as required
+
+8. If you're asked a direct question please sure to ask the user questions to have full details before responding. Responding without full context is very annoying and unhelpful.
+
+9. If you have enough details to give a personalized and in-depth answer, give the answer; no need for a follow-up question. Be detailed when necessary and brief when necessary.
+
+When the user asks you a question, you should:
+1. Provide a concise and helpful answer and do not engage in verbosity.
+2. Ask relevant follow-up questions to clarify the task or gather more personalized details in order to ask more bespoke follow-ups.
+3. Regularly seek feedback on your responses to ensure you are providing the most useful responses and meeting the user's needs.
+
+Make sure to maintain a polite, encouraging, and supportive tone.
+
 
     "\n\n"
 """),
@@ -133,7 +189,7 @@ rag_chain = (
     | llm_groq
     | StrOutputParser()
 )
-print(rag_chain.invoke({"question": "Mention current EVC of NCC?"}))
+print(rag_chain.invoke({"question": "Who is responsible for organizing the strategy, policy, process and risk awareness quiz (SPPRA)"}))
 
 
 

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NCC Chatbot</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f0f0f0;
+        margin: 0;
+      }
+
+      .chat-container {
+        width: 400px;
+        height: 500px;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .chat-header {
+        background-color: #004479;
+        color: #fff;
+        padding: 10px;
+        text-align: start;
+        border-radius: 10px 10px 0 0;
+        padding: 1.3em 1em;
+        display: flex;
+        align-items: center;
+        justify-content: start;
+        gap: 10px;
+      }
+
+      .chat-messages {
+        flex: 1;
+        padding: 10px;
+        overflow-y: auto;
+        border-bottom: 1px solid #ccc;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .chat-input {
+        display: flex;
+        padding: 10px;
+        border-radius: 0 0 10px 10px;
+        background-color: #f0f0f0;
+      }
+
+      .chat-input input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #fff;
+      }
+
+      .chat-input button {
+        padding: 5px 5px;
+        background-color: #f0f0f0;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        margin-left: 10px;
+        cursor: pointer;
+      }
+
+      .chat-input button:hover {
+        background-color: none;
+      }
+
+      .message {
+        margin-bottom: 10px;
+        word-wrap: break-word;
+        display: inline-block;
+        padding: 10px;
+        border-radius: 16px;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeUp 0.5s ease forwards;
+      }
+
+      .message.received {
+        background-color: #f2f7fb;
+        color: #000;
+        align-self: flex-start;
+        padding: 1em 2em;
+        border-radius: 56px 56px 56px 0px;
+        -webkit-border-radius: 56px 56px 56px 0px;
+        -moz-border-radius: 56px 56px 56px 0px;
+      }
+
+      .message.sent {
+        background-color: #004479;
+        color: #fff;
+        align-self: flex-end;
+        padding: 1em 2em;
+        border-radius: 56px 56px 0px 57px;
+        -webkit-border-radius: 56px 56px 0px 57px;
+        -moz-border-radius: 56px 56px 0px 57px;
+      }
+
+      @keyframes fadeUp {
+        0% {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .timestamp {
+        font-size: 0.75em;
+        color: #888;
+        text-align: right;
+      }
+
+      #messageInput {
+        max-height: 1.5rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+        font-size: 0.875rem;
+        outline: none;
+        cursor: not-allowed;
+        opacity: 0.5;
+        width: 100%;
+        border-radius: 25px;
+        display: flex;
+        align-items: center;
+        height: 4rem;
+        resize: none;
+      }
+
+      .send-button svg {
+        transition: transform 0.2s;
+      }
+
+      .ncc-logo {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="chat-container">
+      <div class="chat-header">
+        <img src="./ncc-logo.jpeg" alt="ncc-logo" class="ncc-logo" />NCC Chatbot
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="message received">Hello! How can I help you today?</div>
+      </div>
+      <div class="chat-input">
+        <input
+          type="text"
+          id="messageInput"
+          placeholder="Type a message..."
+          aria-label="Type a message"
+        />
+        <button type="button" class="send-button" onclick="sendMessage()">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="#00335d"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M22 2L11 13M22 2L15 22L11 13M22 2L2 11L11 13"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <script>
+      let chatHistory = [];
+
+      async function sendMessage() {
+        const messageInput = document.getElementById("messageInput");
+        const chatMessages = document.getElementById("chatMessages");
+
+        if (messageInput.value.trim() !== "") {
+          const userMessage = messageInput.value;
+
+          // Display user message
+          const userMessageDiv = document.createElement("div");
+          userMessageDiv.className = "message sent";
+          userMessageDiv.textContent = userMessage;
+          chatMessages.appendChild(userMessageDiv);
+
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+          messageInput.value = "";
+
+          // Display "typing..." indicator
+          const typingIndicator = document.createElement("div");
+          typingIndicator.className = "message received";
+          typingIndicator.textContent = "Typing...";
+          chatMessages.appendChild(typingIndicator);
+
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+
+          // Send message to server
+          try {
+            const response = await fetch("http://127.0.0.1:5000/chat", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                message: userMessage,
+                history: chatHistory,
+              }),
+            });
+
+            const data = await response.json();
+            const botResponse = data.response;
+
+            // Remove typing indicator
+            chatMessages.removeChild(typingIndicator);
+
+            // Display bot response
+            const botMessageDiv = document.createElement("div");
+            botMessageDiv.className = "message received";
+            botMessageDiv.textContent = botResponse;
+            chatMessages.appendChild(botMessageDiv);
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Update chat history
+            chatHistory = data.history;
+          } catch (error) {
+            // Handle any errors (optional)
+            console.error("Error fetching response:", error);
+            typingIndicator.textContent = "⚠️ Failed to get response.";
+          }
+        }
+      }
+
+      // Allow pressing "Enter" to send the message
+      document
+        .getElementById("messageInput")
+        .addEventListener("keypress", function (e) {
+          if (e.key === "Enter") {
+            sendMessage();
+          }
+        });
+    </script>
+  </body>
+</html>
