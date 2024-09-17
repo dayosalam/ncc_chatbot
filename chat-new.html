@@ -230,6 +230,9 @@
               }),
             });
 
+            const i = 0;
+            const speed = 50;
+
             const data = await response.json();
             const botResponse = data.response;
 
@@ -241,6 +244,15 @@
             botMessageDiv.className = "message received";
             botMessageDiv.textContent = botResponse;
             chatMessages.appendChild(botMessageDiv);
+
+            function typeWriter() {
+              if (i < botResponse.length) {
+                document.getElementsByClassName("message received").innerHTML +=
+                  botResponse.charAt(i);
+                i++;
+                setTimeout(typeWriter, speed);
+              }
+            }
 
             chatMessages.scrollTop = chatMessages.scrollHeight;
 

@@ -2,7 +2,7 @@
 # import sys
 # sys.path.append(r'C:\Users\i\Desktop\llm\ncc_doc')
 # from nccragv3 import vectorstore
-from cd import txt_to_docx
+# from cd import txt_to_docx
 from dotenv import load_dotenv
 from langchain.prompts import PromptTemplate
 from operator import itemgetter
@@ -12,7 +12,7 @@ from langchain.retrievers.self_query.base import SelfQueryRetriever
 import os
 from langchain_groq import ChatGroq
 from langchain.memory import ConversationBufferMemory
-import ollama
+# import ollama
 from langchain_core.pydantic_v1 import BaseModel
 from langchain.chains import RetrievalQA
 from langchain_community.chat_models import ChatOllama
@@ -29,7 +29,6 @@ from langchain_core.messages import AIMessage, HumanMessage
 from pathlib import Path
 from typing import List, Optional, Any
 import time
-import prompts
 
 load_dotenv()
 #  
@@ -51,6 +50,9 @@ import pickle
 #     embedding = pickle.load(file)
 
 embedding = OllamaEmbeddings(model="mxbai-embed-large")
+
+
+
 #%%
 persist_directory = 'vectordb_mx'
 
@@ -189,7 +191,7 @@ rag_chain = (
     | llm_groq
     | StrOutputParser()
 )
-print(rag_chain.invoke({"question": "Who is responsible for organizing the strategy, policy, process and risk awareness quiz (SPPRA)"}))
+print(rag_chain.invoke({"question": "What factors should be considered when assessing risks? "}))
 
 
 
