@@ -191,7 +191,7 @@ rag_chain = (
     | llm_groq
     | StrOutputParser()
 )
-print(rag_chain.invoke({"question": "What factors should be considered when assessing risks? "}))
+# print(rag_chain.invoke({"question": "What factors should be considered when assessing risks? "}))
 
 
 
