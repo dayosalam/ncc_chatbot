@@ -1,5 +1,5 @@
 # %% Setting up Llama3 using GROQ API
-from cd import txt_to_docx
+# from cd import txt_to_docx
 import tiktoken
 import matplotlib.pyplot as plt
 from langchain_community.embeddings import HuggingFaceHubEmbeddings
@@ -29,7 +29,7 @@ ollama_llm = "llama3"
 
 # %% # Directory path where your files are located and adding metadata to the documents
 
-directory = r'C:\Users\i\Desktop\llm\ncc_doc\publish'
+directory = r'C:\Users\i\Desktop\llm\ncc_doc\publish\FAQs'
 
 def load_knowledge_base(directory):
     # List to store Document objects
@@ -94,10 +94,10 @@ concatenated_content = "\n\n\n --- \n\n\n".join(
     [doc.page_content for doc in documents]
 )
 
-# print(
-#     "Num tokens in all context: %s"
-#     % num_tokens_from_string(concatenated_content, "cl100k_base")
-# )
+print(
+    "Num tokens in all context: %s"
+    % num_tokens_from_string(concatenated_content, "cl100k_base")
+)
 # print(
 #     f"{concatenated_content}"
 # )
@@ -110,7 +110,7 @@ def text_splitter(chunk_size, chunk_overlap):
 
 text_splitter = text_splitter(3000, 300)
 texts_split = text_splitter.create_documents([concatenated_content])
-print(texts_split)
+# print(len(texts_split))
 
 # File path where the output will be written
 file_path = "output.txt"
@@ -138,15 +138,19 @@ embedding = OllamaEmbeddings(model="mxbai-embed-large")
 
 # embedding = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key='AIzaSyA1exXlH0Mc6dYTBb3Afjo4QmcMLq_PUE0')
 #%%
+print("Creating vector database")
+start_time = time.time()
+print(f"Start time is: {start_time}")
 # Embed and store the texts
-persist_directory = './vertordb_mx'
+persist_directory = r'C:\Users\i\Desktop\llm\ncc_doc\ncc_chatbot\my-app\packages\pirate-speak\pirate_speak\vertordb_mx'
 
 # Now, use all_texts to build the vectorstore with Chroma
 vectorstore = Chroma.from_documents(
     documents=texts_split, embedding=embedding, persist_directory=persist_directory)
 
-
-
+end_time = time.time()
+print(f"Time Taken is: {end_time - start_time}")
+print("Done creating Vector database")
 
 # %%
 # Using FAISS vectorDB
