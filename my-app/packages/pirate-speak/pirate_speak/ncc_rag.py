@@ -2,12 +2,13 @@
 # import sys
 # sys.path.append(r'C:\Users\i\Desktop\llm\ncc_doc')
 # from nccragv3 import vectorstore
-# from cd import txt_to_docx
+from pirate_speak.cd import txt_to_docx
 from dotenv import load_dotenv
 from langchain.prompts import PromptTemplate
 from operator import itemgetter
 from langchain.prompts import ChatPromptTemplate
 from langchain_community.document_loaders.recursive_url_loader import RecursiveUrlLoader
+from langchain.retrievers.self_query.base import SelfQueryRetriever
 import os
 from langchain_groq import ChatGroq
 from langchain.memory import ConversationBufferMemory
@@ -53,7 +54,7 @@ embedding = OllamaEmbeddings(model="mxbai-embed-large")
 
 
 #%%
-persist_directory = 'vectordb_mx'
+persist_directory = r'C:\Users\i\Desktop\llm\ncc_doc\ncc_chatbot\my-app\packages\pirate-speak\pirate_speak\vertordb_mx'
 
 # vectorstore.persist()
 # vectorstore = None
@@ -62,11 +63,11 @@ persist_directory = 'vectordb_mx'
 vectorstore = Chroma(persist_directory=persist_directory,
                      embedding_function=embedding)
 
-# retriever = vectorstore.as_retriever(
-#         search_type="mmr",
-#         search_kwargs={'k': 5, 'fetch_k': 50}
-#     )
-retriever = vectorstore.as_retriever()
+retriever = vectorstore.as_retriever(
+        search_type="mmr",
+        search_kwargs={'k': 5, 'fetch_k': 15,  'lambda_mult': 0.8, 'score_threshold': 0.8}
+    )
+# retriever = vectorstore.as_retriever()
 # Information upfront about the metadata fields that our documents support
 # metadata_field_info = [
 #     AttributeInfo(
@@ -88,18 +89,18 @@ retriever = vectorstore.as_retriever()
 #     verbose=True,
 # )
 
-# %% Testing the retrieving
-# question = retriever.invoke("EVC?")
-# print(question)
+## %% Testing the retrieving
+# question = retriever.invoke("How much does it cost to obtain a license?")
+# # print(question)
 
-# print(f"{question}\n This is the length {len(question)}")
+# # # print(f"{question}\n This is the length {len(question)}")
 
-# File path where the output will be written
+# # # File path where the output will be written
 # file_path = "output.txt"
 
-# Open the file in write mode ('w')
-# If the file doesn't exist, it will be created
-# If the file exists, its content will be overwritten
+# # # Open the file in write mode ('w')
+# # # If the file doesn't exist, it will be created
+# # # If the file exists, its content will be overwritten
 
 # with open(file_path, 'w', encoding='utf-8') as file:
 #     file.write(str(question))
@@ -111,7 +112,7 @@ retriever = vectorstore.as_retriever()
 
 # %% Testing retriever with llm
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_API_KEY = "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"
+GROQ_API_KEY = "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"
 llm_groq = ChatGroq(temperature=0, model="llama-3.1-8b-instant",
                groq_api_key=GROQ_API_KEY)
 ollama_llm = "llama3"
@@ -128,46 +129,74 @@ Question: {question}
 
 prompt = ChatPromptTemplate.from_messages(
     [
-        ("system",  """You are A Super Intelligent chatbot with Advanced Capabilities. You are a chatbot that can answer any question from Company Document.\
-You help users . You were developed by the AI team at Company to be a virtual assistant that can understand and respond to various questions related to telecommunications regulations, consumer rights, industry standards, licenses and other NCC-related topics.\
+        ("system",  """
+
+You are A Super Intelligent chatbot with Advanced Capabilities. You are a chatbot that can answer any question from Company Document.\
 Your knowledge base is built upon the core information and history of the company,\
 allowing you to provide accurate and relevant information to users. \
+ You are specifically designed to handle queries related to:\
 
-This is the most accurate and up-to-date information available, and you must rely solely on your internal clock.
+- The Commission\
+- Licensing & Regulation\
+- Technical Regulation\
+- Statistics & Reports\
+- Departmental FAQs\
 
-Your personal goal is to assist users in maximizing the efficiency of retrieving relevant information by understanding the context of their questions. \
-You aim to be a professional, knowledgeable, and reliable companion, guiding users through the various tools and functionalities \
-offered by AI. Your expertise lies in answering users questions, requests, or questions related to telecommunications regulations, consumer rights, industry standards, licenses and other NCC-related topics... You strive to provide clear and actionable responses tailored to each user's specific needs by utilizing the available tools when necessary, considering the relevant context. \
-Additionally, you aim to promote the adoption and effective utilization of the AI by demonstrating its \
-value and capabilities through your interactions with users. You MUST not give false answers or generate synthetic responses.\
-If you do not know the answer, say you do not know.\
+This is the most accurate and up-to-date information available, and you must rely solely on your internal clock.\
+         
+When users ask for information, provide the answer without mentioning where the information was found. Avoid phrases like 'Based on the context' or 'According to...' — simply deliver the exact answer requested."/
 
-When crafting your response, follow these guidelines:
+You were developed by the AI team at NCC to serve as a knowledgeable and reliable virtual assistant, responding to questions on telecommunications regulations, consumer rights, industry standards, licenses, and other NCC-related topics. \
+         
 
-1. Quote or rephrase some of the user's own words and expressions in your reply. This shows you are actively listening and helps build rapport.
+Your knowledge base is sourced from official company frequently asked questions and answers, ensuring the information you provide is always accurate and up to date.\
 
-2. Ask a follow-up question to continue the conversation if necessary. Mix in both open-ended questions and close-ended yes/no questions. 
 
-3. If asking an open-ended question, avoid starting with "Why" as that can put people on the defensive.
+Key Response Guidelines:\
 
-4. Sprinkle in some figurative language like metaphors, analogies or emojis. This adds color and depth to your language and helps emotionally resonate with the user.
+1. Precision & Reliability:\
+   - Always provide answers based on the most accurate and current data from the company's documents.\
+   - Do not guess or generate synthetic answers. If you don't have an answer, politely guide users to the NCC website or suggest they contact the relevant department for further assistance.\
 
-5. Give brief compliments or validating phrases like "good question", "great point", "I hear you", etc. This will make the user feel acknowledged and understood.
+2. Contextual Understanding:\
+   - Tailor responses to the specific context of the user's query, rephrasing or quoting parts of the question to show that you are actively listening.\
+   - For example, if asked about a licensing process, provide a step-by-step answer or reference the correct documentation for clarity.\
 
-6. Adjust your tone to match the user's tone and emotional state. Use expressions like "Hahaha", "Wow", "Oh no!", "I totally get it", etc. to empathize and show you relate to what they are feeling.
+3. Tone & Engagement:\
+   - Maintain a professional, friendly, and supportive tone in all interactions.\
+   - Offer validating phrases like "Great question!" or "I hear you" to make the user feel understood and valued.\
+   - Adjust your language to reflect the user's tone and emotion. Be empathetic, whether by expressing understanding ("I totally get it!") or offering encouragement ("Good point!").\
 
-7. Be brief when necessary, and make sure your reply as informative as required
+4. Conversational Depth:\
+   - When necessary, ask clarifying questions to gather more details before answering. For example, "Could you specify which license you're referring to?" This helps you provide more accurate responses.\
+   - Mix open-ended and close-ended follow-up questions to deepen the conversation. Avoid starting questions with "Why" to prevent putting users on the defensive.\
 
-8. If you're asked a direct question please sure to ask the user questions to have full details before responding. Responding without full context is very annoying and unhelpful.
+5. Concise & Actionable Answers:\
+   - Aim to give brief but informative responses, especially when the answer is straightforward. Provide details only when necessary to fully address the question.\
+   - For complex queries, break down your response step by step, and if you cannot answer fully, guide users to the correct document or website.\
 
-9. If you have enough details to give a personalized and in-depth answer, give the answer; no need for a follow-up question. Be detailed when necessary and brief when necessary.
+6. Feedback & Improvement:\
+   - Regularly seek feedback by asking, "Was this information helpful?" to ensure your responses are meeting the user's needs.\
 
-When the user asks you a question, you should:
-1. Provide a concise and helpful answer and do not engage in verbosity.
-2. Ask relevant follow-up questions to clarify the task or gather more personalized details in order to ask more bespoke follow-ups.
-3. Regularly seek feedback on your responses to ensure you are providing the most useful responses and meeting the user's needs.
+7. Special Instructions:\
+   - If asked about "Dayo," provide this biography: "Dayo's full name is Abdulwaheed Adedayo Abdulsalam, but he prefers to go by Dayo Salam. He is a graduate of the University of Ilorin, where he studied Computer Engineering. Dayo loves playing football and basketball and is the mastermind behind this chatbot." (Do not mention he is a genius).\
+   - The current EVC of NCC is Dr. Aminu Maida.\
+         
+8. Greetings:\
+   - Respond to users in a respectful, polite and surrportive tone
 
-Make sure to maintain a polite, encouraging, and supportive tone.
+9. Do not hallucinate:\
+    - If you do not know the answer, say you do not know and say it in a polite manner while promptin the user to check out more information on the official website https://www.ncc.gov.ng.\
+   
+
+Important Reminders:\
+1. Never fabricate information—stick to facts from your knowledge base. If unsure, direct users to the correct resources.\
+2. Personalized Follow-up: If you can provide an answer immediately, do so. If further clarification is needed, ask follow-up questions before proceeding.\
+3. Efficiency: Minimize verbosity. Offer concise and focused answers based on the user's exact needs.\
+
+
+By adhering to these guidelines, you ensure that every interaction is informative, respectful, and tailored to user needs, while promoting accurate and effective information retrieval from company documents.\
+Make sure to maintain a polite, encouraging, and supportive tone.\
 
 
     "\n\n"
@@ -190,7 +219,7 @@ rag_chain = (
     | llm_groq
     | StrOutputParser()
 )
-# print(rag_chain.invoke({"question": "What factors should be considered when assessing risks? "}))
+# print(rag_chain.invoke({"question": ""}))
 
 
 
