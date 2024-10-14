@@ -3,7 +3,129 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script type="module">
+      import rehypeRaw from "https://esm.sh/rehype-raw@7?bundle";
+      import { unified } from "https://esm.sh/unified?bundle";
+      import rehypeParse from "https://esm.sh/rehype-parse?bundle";
+      import rehypeStringify from "https://esm.sh/rehype-stringify?bundle";
+
+      class Chatbot {
+        constructor(chatContainer, chatHistory = []) {
+          this.chatContainer = chatContainer;
+          this.chatHistory = chatHistory;
+          this.typingIndicator = null;
+        }
+
+        async sendMessage(userMessage) {
+          if (userMessage.trim() !== "") {
+            this.addUserMessage(userMessage);
+            this.showTypingIndicator();
+
+            try {
+              const response = await fetch("http://127.0.0.1:5000/chat", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  message: userMessage,
+                  history: this.chatHistory,
+                }),
+              });
+
+              const data = await response.json();
+              const botResponse = data.response;
+
+              this.removeTypingIndicator();
+              this.addBotMessage(botResponse);
+              this.chatHistory = data.history; // Update history
+            } catch (error) {
+              this.showError("⚠️ Failed to get response.");
+              console.error("Error fetching response:", error);
+            }
+          }
+        }
+
+        addUserMessage(userMessage) {
+          const userMessageDiv = document.createElement("div");
+          userMessageDiv.className = "message sent";
+          userMessageDiv.textContent = userMessage;
+          this.chatContainer.appendChild(userMessageDiv);
+          this.scrollToBottom();
+        }
+
+        async addBotMessage(botMessage) {
+          const formattedMessage = await this.formatMessage(botMessage);
+          const botMessageDiv = document.createElement("div");
+          botMessageDiv.className = "message received";
+          botMessageDiv.innerHTML = formattedMessage; // Set formatted HTML
+          this.chatContainer.appendChild(botMessageDiv);
+          this.scrollToBottom();
+        }
+
+        showTypingIndicator() {
+          this.typingIndicator = document.createElement("div");
+          this.typingIndicator.className = "message received";
+          this.typingIndicator.textContent = "Typing...";
+          this.chatContainer.appendChild(this.typingIndicator);
+          this.scrollToBottom();
+        }
+
+        removeTypingIndicator() {
+          if (this.typingIndicator) {
+            this.chatContainer.removeChild(this.typingIndicator);
+            this.typingIndicator = null;
+          }
+        }
+
+        scrollToBottom() {
+          this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
+        }
+
+        showError(errorMessage) {
+          if (this.typingIndicator) {
+            this.typingIndicator.textContent = errorMessage;
+          }
+        }
+
+        async formatMessage(rawMessage) {
+          const processor = unified()
+            .use(rehypeParse, { fragment: true })
+            .use(rehypeRaw)
+            .use(rehypeStringify);
+
+          const result = await processor.process(rawMessage);
+          return result.value;
+        }
+      }
+
+      const openChatBtn = document.getElementById("openChatBtn");
+      const closeChatBtn = document.getElementById("closeChatBtn");
+      const chatContainer = document.getElementById("chatMessages");
+      const messageInput = document.getElementById("messageInput");
+
+      const chatbot = new Chatbot(chatContainer);
+
+      openChatBtn.addEventListener("click", function () {
+        document.getElementById("chatContainer").classList.add("open");
+      });
+
+      closeChatBtn.addEventListener("click", function () {
+        document.getElementById("chatContainer").classList.remove("open");
+      });
+
+      function sendMessage() {
+        const userMessage = messageInput.value;
+        messageInput.value = "";
+        chatbot.sendMessage(userMessage);
+      }
+
+      messageInput.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+          sendMessage();
+        }
+      });
+    </script>
     <title>NCC Chatbot</title>
     <style>
       body {
@@ -232,93 +354,5 @@
         </button>
       </div>
     </div>
-
-    <script>
-      const openChatBtn = document.getElementById("openChatBtn");
-      const closeChatBtn = document.getElementById("closeChatBtn");
-      const chatContainer = document.getElementById("chatContainer");
-
-      openChatBtn.addEventListener("click", function () {
-        chatContainer.classList.add("open");
-      });
-
-      closeChatBtn.addEventListener("click", function () {
-        chatContainer.classList.remove("open");
-      });
-
-      let chatHistory = [];
-
-      async function sendMessage() {
-        const messageInput = document.getElementById("messageInput");
-        const chatMessages = document.getElementById("chatMessages");
-
-        if (messageInput.value.trim() !== "") {
-          const userMessage = messageInput.value;
-
-          // Display user message
-          const userMessageDiv = document.createElement("div");
-          userMessageDiv.className = "message sent";
-          userMessageDiv.textContent = userMessage;
-          chatMessages.appendChild(userMessageDiv);
-
-          chatMessages.scrollTop = chatMessages.scrollHeight;
-          messageInput.value = "";
-
-          // Display "typing..." indicator
-          const typingIndicator = document.createElement("div");
-          typingIndicator.className = "message received";
-          typingIndicator.textContent = "Typing...";
-          chatMessages.appendChild(typingIndicator);
-
-          chatMessages.scrollTop = chatMessages.scrollHeight;
-
-          // Send message to server
-          try {
-            const response = await fetch("http://127.0.0.1:5000/chat", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                message: userMessage,
-                history: chatHistory,
-              }),
-            });
-
-            const data = await response.json();
-            const botResponse = data.response;
-
-            // Remove typing indicator
-            chatMessages.removeChild(typingIndicator);
-
-            // Display bot response
-            const botMessageDiv = document.createElement("div");
-            botMessageDiv.className = "message received";
-            botMessageDiv.textContent = botResponse;
-
-            botMessageDiv.innerHTML = marked(botResponse);
-            chatMessages.appendChild(botMessageDiv);
-
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-
-            // Update chat history
-            chatHistory = data.history;
-          } catch (error) {
-            // Handle any errors
-            console.error("Error fetching response:", error);
-            typingIndicator.textContent = "⚠️ Failed to get response.";
-          }
-        }
-      }
-
-      // Allow pressing "Enter" to send the message
-      document
-        .getElementById("messageInput")
-        .addEventListener("keypress", function (e) {
-          if (e.key === "Enter") {
-            sendMessage();
-          }
-        });
-    </script>
   </body>
 </html>
