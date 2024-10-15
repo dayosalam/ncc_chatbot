@@ -109,6 +109,30 @@
         }
 
         async formatMessage(rawMessage) {
+          // Handle <a> tags
+          rawMessage = rawMessage.replace(
+            /<a\s+(?:[^>]*?\s+)?href="([^"]*)"[^>]*>(.*?)<\/a>/gi,
+            (match, url, text) => {
+              return `<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+            }
+          );
+
+          // Handle <h1> tags
+          rawMessage = rawMessage.replace(
+            /<h1>(.*?)<\/h1>/gi,
+            (match, content) => {
+              return `<h1 style="font-size: 1.5em; font-weight: bold; margin: 0.5em 0;">${content}</h1>`;
+            }
+          );
+
+          // Handle <li> tags
+          rawMessage = rawMessage.replace(
+            /<li>(.*?)<\/li>/gi,
+            (match, content) => {
+              return `<li style="margin-left: 1.5em;">• ${content}</li>`;
+            }
+          );
+
           const processor = unified()
             .use(remarkParse)
             .use(remarkRehype, { allowDangerousHtml: true })
@@ -242,6 +266,17 @@
         opacity: 0;
         transform: translateY(20px);
         animation: fadeUp 0.5s ease forwards;
+      }
+
+      .message a {
+        text-decoration: underline;
+        color: #0066cc;
+      }
+
+      .message ul {
+        margin: 0;
+        padding: 0;
+        list-style-type: none;
       }
 
       .message.received {
