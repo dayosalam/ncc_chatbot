@@ -8,6 +8,9 @@
       import { unified } from "https://esm.sh/unified?bundle";
       import rehypeParse from "https://esm.sh/rehype-parse?bundle";
       import rehypeStringify from "https://esm.sh/rehype-stringify?bundle";
+      import rehypeFormat from "https://esm.sh/rehype-format?bundle";
+      import remarkParse from "https://esm.sh/remark-parse?bundle";
+      import remarkRehype from "https://esm.sh/remark-rehype?bundle";
 
       class Chatbot {
         constructor(chatContainer, chatHistory = []) {
@@ -40,7 +43,7 @@
               this.addBotMessage(botResponse);
               this.chatHistory = data.history; // Update history
             } catch (error) {
-              this.showError("⚠️ Failed to get response.");
+              this.showError("⚠️ Failed to get response :(");
               console.error("Error fetching response:", error);
             }
           }
@@ -58,15 +61,32 @@
           const formattedMessage = await this.formatMessage(botMessage);
           const botMessageDiv = document.createElement("div");
           botMessageDiv.className = "message received";
-          botMessageDiv.innerHTML = formattedMessage; // Set formatted HTML
+
+          const robotIcon = document.createElement("img");
+          robotIcon.src = "../static/ai-robot.svg";
+          robotIcon.alt = "AI Robot";
+          robotIcon.className = "ai-robot";
+
+          botMessageDiv.appendChild(robotIcon);
+
+          const messageContent = document.createElement("div");
+          messageContent.innerHTML = formattedMessage;
+          botMessageDiv.appendChild(messageContent);
+
           this.chatContainer.appendChild(botMessageDiv);
           this.scrollToBottom();
         }
 
         showTypingIndicator() {
+          const robotIcon = document.createElement("img");
+          robotIcon.src = "../static/ai-robot.svg";
+          robotIcon.alt = "AI Robot";
+          robotIcon.className = "ai-robot";
+
           this.typingIndicator = document.createElement("div");
           this.typingIndicator.className = "message received";
           this.typingIndicator.textContent = "Typing...";
+          this.chatContainer.appendChild(robotIcon);
           this.chatContainer.appendChild(this.typingIndicator);
           this.scrollToBottom();
         }
@@ -89,9 +109,35 @@
         }
 
         async formatMessage(rawMessage) {
+          // Handle <a> tags
+          rawMessage = rawMessage.replace(
+            /<a\s+(?:[^>]*?\s+)?href="([^"]*)"[^>]*>(.*?)<\/a>/gi,
+            (match, url, text) => {
+              return `<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+            }
+          );
+
+          // Handle <h1> tags
+          rawMessage = rawMessage.replace(
+            /<h1>(.*?)<\/h1>/gi,
+            (match, content) => {
+              return `<h1 style="font-size: 1.5em; font-weight: bold; margin: 0.5em 0;">${content}</h1>`;
+            }
+          );
+
+          // Handle <li> tags
+          rawMessage = rawMessage.replace(
+            /<li>(.*?)<\/li>/gi,
+            (match, content) => {
+              return `<li style="margin-left: 1.5em;">• ${content}</li>`;
+            }
+          );
+
           const processor = unified()
-            .use(rehypeParse, { fragment: true })
+            .use(remarkParse)
+            .use(remarkRehype, { allowDangerousHtml: true })
             .use(rehypeRaw)
+            .use(rehypeFormat)
             .use(rehypeStringify);
 
           const result = await processor.process(rawMessage);
@@ -125,6 +171,8 @@
           sendMessage();
         }
       });
+
+      window.sendMessage = sendMessage;
     </script>
     <title>NCC Chatbot</title>
     <style>
@@ -220,12 +268,28 @@
         animation: fadeUp 0.5s ease forwards;
       }
 
+      .message a {
+        text-decoration: underline;
+        color: #0066cc;
+      }
+
+      .message ul {
+        margin: 0;
+        padding: 0;
+        list-style-type: none;
+      }
+
       .message.received {
         background-color: #f2f7fb;
         color: #000;
         align-self: flex-start;
         padding: 1em 2em;
-        border-radius: 56px 56px 56px 0px;
+        border-radius: 0px 89px 89px 89px;
+        -webkit-border-radius: 0px 89px 89px 89px;
+        -moz-border-radius: 0px 89px 89px 89px;
+        display: flex-col;
+        align-items: center;
+        justify-items: center;
       }
 
       .message.sent {
@@ -234,6 +298,12 @@
         align-self: flex-end;
         padding: 1em 2em;
         border-radius: 56px 56px 0px 57px;
+      }
+
+      .ai-robot {
+        width: 24px;
+        height: 24px;
+        margin-right: 10px;
       }
 
       @keyframes fadeUp {
@@ -326,7 +396,10 @@
         </button>
       </div>
       <div class="chat-messages" id="chatMessages">
-        <div class="message received">Hello! How can I help you today?</div>
+        <img src="../static//ai-robot.svg" alt="ai-robot" class="ai-robot" />
+        <div class="message received">
+          <div>Hello! How can I help you today?</div>
+        </div>
       </div>
       <div class="chat-input">
         <input
