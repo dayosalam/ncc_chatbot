@@ -79,7 +79,7 @@
 
         showTypingIndicator() {
           const robotIcon = document.createElement("img");
-          robotIcon.src = "../static/ai-robot.svg";
+          robotIcon.src = "../static/avatar.png";
           robotIcon.alt = "AI Robot";
           robotIcon.className = "ai-robot";
 
@@ -290,6 +290,7 @@
         display: flex-col;
         align-items: center;
         justify-items: center;
+        margin-top: -10px;
       }
 
       .message.sent {
@@ -301,8 +302,8 @@
       }
 
       .ai-robot {
-        width: 24px;
-        height: 24px;
+        width: 60px;
+        height: 60px;
         margin-right: 10px;
       }
 
@@ -367,6 +368,10 @@
         gap: 10px;
         align-items: center;
       }
+
+      .space {
+        margin-top: 10px;
+      }
     </style>
   </head>
   <body>
@@ -396,7 +401,7 @@
         </button>
       </div>
       <div class="chat-messages" id="chatMessages">
-        <img src="../static//ai-robot.svg" alt="ai-robot" class="ai-robot" />
+        <div class="space"></div>
         <div class="message received">
           <div>Hello! How can I help you today?</div>
         </div>
