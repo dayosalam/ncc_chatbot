@@ -178,13 +178,71 @@
     <style>
       body {
         font-family: Arial, sans-serif;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
         background-color: #f0f0f0;
         margin: 0;
-        overflow: hidden;
+        padding: 0;
+        /* overflow: hidden; */
+      }
+
+      /* NCC Header Styles */
+      .ncc-header {
+        background-color: #004479;
+        color: #fff;
+        padding: 1em 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .ncc-header .ncc-logo {
+        width: 50px;
+        height: auto;
+        margin-left: 20px;
+      }
+
+      .ncc-nav ul {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        gap: 1em;
+        margin-right: 20px;
+      }
+
+      .ncc-nav a {
+        color: #fff;
+        text-decoration: none;
+        font-size: 14px;
+      }
+/* Main Content Styles */
+      .hero {
+        background-color: #004479;
+        padding: 2em 0;
+        text-align: center;
+      }
+
+      .updates {
+        padding: 2em 0;
+      }
+
+      .updates ul {
+        list-style: none;
+        padding: 0;
+      }
+
+      .updates li {
+        margin-bottom: 1em;
+      }
+
+      .updates a {
+        text-decoration: none;
+        color: #004479;
+        font-weight: bold;
+      }
+
+      .updates span {
+        display: block;
+        font-size: 0.9em;
+        color: #666;
       }
 
       .chat-container {
@@ -229,6 +287,12 @@
         display: flex;
         flex-direction: column;
         gap: 10px;
+      }
+
+      .container {
+        width: 90%;
+        max-width: 1200px;
+        margin: 0 auto;
       }
 
       .chat-input {
@@ -372,9 +436,128 @@
       .space {
         margin-top: 10px;
       }
+
+       /* Hero Section */
+      .hero {
+        background: url("ncc-banner.jpg") no-repeat center center/cover;
+        color: white;
+        text-align: center;
+        padding: 4em 0;
+      }
+
+      .hero h1 {
+        font-size: 2.5em;
+        margin-bottom: 0.5em;
+      }
+
+      .hero p {
+        font-size: 1.2em;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+
+      /* Updates Section */
+      .updates {
+        background: #fff;
+        padding: 2em 0;
+      }
+
+      .updates h2 {
+        text-align: center;
+        margin-bottom: 1.5em;
+      }
+
+      .updates ul {
+        list-style: none;
+        padding: 0;
+      }
+
+      .updates li {
+        margin-bottom: 1em;
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .updates a {
+        text-decoration: none;
+        color: #004479;
+        font-weight: bold;
+      }
+
+      .updates span {
+        display: block;
+        font-size: 0.9em;
+        color: #666;
+      }
+
+
+       /* Footer */
+      .ncc-footer {
+        background: #004479;
+        color: white;
+        text-align: center;
+        padding: 1.5em 0;
+        margin-top: 2em;
+      }
+
+      .ncc-footer p {
+        margin: 0;
+        font-size: 14px;
+      }
+
     </style>
   </head>
   <body>
+    <!-- NCC Header -->
+    <header class="ncc-header">
+      <img src="ncc-logo.png" alt="NCC Logo" class="ncc-logo" />
+      <nav class="ncc-nav">
+        <ul>
+          <li><a href="#">About NCC</a></li>
+          <li><a href="#">Licensing & Regulation</a></li>
+          <li><a href="#">Consumer Affairs</a></li>
+          <li><a href="#">Statistics & Reports</a></li>
+          <li><a href="#">Media Centre</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container">
+        <h1>Ensuring a Robust Telecommunications Industry</h1>
+        <p>Your trusted partner in telecommunications regulation in Nigeria.</p>
+      </div>
+    </section>
+
+     <!-- Latest News -->
+    <section class="updates">
+      <div class="container">
+        <h2>Latest Updates</h2>
+        <ul>
+          <li>
+            <a href="#">NCC Approves Tariff Adjustments by Operators</a>
+            <span>January 20, 2025</span>
+          </li>
+          <li>
+            <a href="#">NCC Pre-Enforcement Action on Starlink Over Price Hike</a>
+            <span>October 08, 2024</span>
+          </li>
+          <li>
+            <a href="#">Final Deadline for NIN-SIM Linkage Compliance</a>
+            <span>August 28, 2024</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+     <!-- Footer -->
+    <footer class="ncc-footer">
+      <p>© 2025 Nigerian Communications Commission. All rights reserved.</p>
+    </footer>
+
     <button class="floating-button" id="openChatBtn">💬</button>
 
     <div class="chat-container" id="chatContainer">
