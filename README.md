@@ -33,7 +33,36 @@ Many organizations face challenges in making internal documentation easily acces
 
 ### Installation
 
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.8+
+- `pip` for installing dependencies
+
+### Installation
+
 ```bash
+pip install -r requirements.txt
+```
+```bash
+cd my-app\app
+python server.py
+```
+
+ ## Author
+Developed by Dayo as part of the AI initiative at the Nigerian Communications Commission.
+
+## Notes
+1. The chatbot was designed for internal use only.
+
+2. Data privacy and document security were maintained throughout.
+
+3. The RAG setup can be adapted to other organizations with similar needs.
+
+## Contact
+For questions or collaboration, feel free to reach out.
 pip install -r requirements.txt
 
 cd my-app\app
