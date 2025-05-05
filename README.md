@@ -24,17 +24,6 @@ Many organizations face challenges in making internal documentation easily acces
    - Sends the context along with the query to the language model to generate a final answer.
 
 
-## Project Structure
-
-```plaintext
-ncc_chatbot/
-│
-├── my-app/
-│   ├── app/                      ← Flask backend code
-│   └── packages/
-│       └── pirate-speak/
-│           └── pirate_speak/
-│               └── nccragv3.py  ← RAG implementation (embedding, vector store logic)
 
 
 ## Getting Started
