@@ -23,20 +23,6 @@ Many organizations face challenges in making internal documentation easily acces
    - Retrieves the most relevant chunks of data using similarity search.
    - Sends the context along with the query to the language model to generate a final answer.
 
----
-
-## Project Structure
-
-```plaintext
-ncc_chatbot/
-│
-├── my-app/
-│   ├── app/                      ← Flask backend code
-│   └── packages/
-│       └── pirate-speak/
-│           └── pirate_speak/
-│               └── nccragv3.py  ← RAG implementation (embedding, vector store logic)
-
 
 ## Getting Started
 
@@ -66,3 +52,18 @@ Developed by Dayo as part of the AI initiative at the Nigerian Communications Co
 
 ## Contact
 For questions or collaboration, feel free to reach out.
+
+---
+
+## Project Structure
+
+```plaintext
+ncc_chatbot/
+│
+├── my-app/
+│   ├── app/                      ← Flask backend code
+│   └── packages/
+│       └── pirate-speak/
+│           └── pirate_speak/
+│               └── nccragv3.py  ← RAG implementation (embedding, vector store logic)
+
