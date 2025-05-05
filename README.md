@@ -23,8 +23,18 @@ Many organizations face challenges in making internal documentation easily acces
    - Retrieves the most relevant chunks of data using similarity search.
    - Sends the context along with the query to the language model to generate a final answer.
 
+## Project Structure
 
-
+```plaintext
+ncc_chatbot/
+│
+├── my-app/
+│   ├── app/                      ← Flask backend code
+│   └── packages/
+│       └── pirate-speak/
+│           └── pirate_speak/
+│               └── nccragv3.py  ← RAG implementation (embedding, vector store logic)
+```
 
 ## Getting Started
 
@@ -34,7 +44,6 @@ Many organizations face challenges in making internal documentation easily acces
 - `pip` for installing dependencies
 
 ### Installation
-
 
 ## Getting Started
 
@@ -62,27 +71,6 @@ Developed by Dayo as part of the AI initiative at the Nigerian Communications Co
 2. Data privacy and document security were maintained throughout.
 
 3. The RAG setup can be adapted to other organizations with similar needs.
-
-## Contact
-For questions or collaboration, feel free to reach out.
-pip install -r requirements.txt
-
-cd my-app\app
-python server.py
-
-
- ## Author
-Developed by Dayo as part of the AI initiative at the Nigerian Communications Commission.
-
-## Notes
-1. The chatbot was designed for internal use only.
-
-2. Data privacy and document security were maintained throughout.
-
-3. The RAG setup can be adapted to other organizations with similar needs.
-
-## Contact
-For questions or collaboration, feel free to reach out.
 
 ---
 
