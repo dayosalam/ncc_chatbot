@@ -44,6 +44,8 @@ add_routes(app, rag_chain, path="/ncc_rag")
 @app.post("/chat")
 async def chat(request: ChatRequest):
     question = request.message
+    ncc = "ncc"
+    question = question + ncc
     start_time = time.time()
     print(f"Start time is: {start_time}")
     print(f"This is my data coming from the frontend {request}")
