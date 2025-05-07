@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script type="module">
+    import rehypeRaw from "https://esm.sh/rehype-raw@7?bundle";
+    import { unified } from "https://esm.sh/unified?bundle";
+    import rehypeParse from "https://esm.sh/rehype-parse?bundle";
+    import rehypeStringify from "https://esm.sh/rehype-stringify?bundle";
+    import rehypeFormat from "https://esm.sh/rehype-format?bundle";
+    import remarkParse from "https://esm.sh/remark-parse?bundle";
+    import remarkRehype from "https://esm.sh/remark-rehype?bundle";
+
+    class Chatbot {
+      constructor(chatContainer, chatHistory = []) {
+        this.chatContainer = chatContainer;
+        this.chatHistory = chatHistory;
+        this.typingIndicator = null;
+      }
+
+      async sendMessage(userMessage) {
+        if (userMessage.trim() !== "") {
+          this.addUserMessage(userMessage);
+          this.showTypingIndicator();
+
+          try {
+            const response = await fetch("https://6656-102-91-104-98.ngrok-free.app/chat", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                message: userMessage,
+                history: this.chatHistory,
+              }),
+            });
+
+            const data = await response.json();
+            const botResponse = data.response;
+
+            this.removeTypingIndicator();
+            this.addBotMessage(botResponse);
+            this.chatHistory = data.history; // Update history
+          } catch (error) {
+            this.showError("⚠️ Failed to get response :(");
+            console.error("Error fetching response:", error);
+          }
+        }
+      }
+
+      addUserMessage(userMessage) {
+        const userMessageDiv = document.createElement("div");
+        userMessageDiv.className = "message sent";
+        userMessageDiv.textContent = userMessage;
+        this.chatContainer.appendChild(userMessageDiv);
+        this.scrollToBottom();
+      }
+
+      async addBotMessage(botMessage) {
+        const formattedMessage = await this.formatMessage(botMessage);
+        const botMessageDiv = document.createElement("div");
+        botMessageDiv.className = "message received";
+
+        const robotIcon = document.createElement("img");
+        robotIcon.src = "../static/ai-robot.svg";
+        robotIcon.alt = "AI Robot";
+        robotIcon.className = "ai-robot";
+
+        // botMessageDiv.appendChild(robotIcon);
+
+        const messageContent = document.createElement("div");
+        messageContent.innerHTML = formattedMessage;
+        botMessageDiv.appendChild(messageContent);
+
+        this.chatContainer.appendChild(botMessageDiv);
+        this.scrollToBottom();
+      }
+
+      showTypingIndicator() {
+        const robotIcon = document.createElement("img");
+        robotIcon.src = "../static/avatar.png";
+        robotIcon.alt = "AI Robot";
+        robotIcon.className = "ai-robot";
+
+        this.typingIndicator = document.createElement("div");
+        this.typingIndicator.className = "message received";
+        this.typingIndicator.textContent = "Typing...";
+        this.chatContainer.appendChild(robotIcon);
+        this.chatContainer.appendChild(this.typingIndicator);
+        this.scrollToBottom();
+      }
+
+      removeTypingIndicator() {
+        if (this.typingIndicator) {
+          this.chatContainer.removeChild(this.typingIndicator);
+          this.typingIndicator = null;
+        }
+      }
+
+      scrollToBottom() {
+        this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
+      }
+
+      showError(errorMessage) {
+        if (this.typingIndicator) {
+          this.typingIndicator.textContent = errorMessage;
+        }
+      }
+
+      async formatMessage(rawMessage) {
+        // Handle <a> tags
+        rawMessage = rawMessage.replace(
+          /<a\s+(?:[^>]*?\s+)?href="([^"]*)"[^>]*>(.*?)<\/a>/gi,
+          (match, url, text) => {
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+          }
+        );
+
+        // Handle <h1> tags
+        rawMessage = rawMessage.replace(
+          /<h1>(.*?)<\/h1>/gi,
+          (match, content) => {
+            return `<h1 style="font-size: 1.5em; font-weight: bold; margin: 0.5em 0;">${content}</h1>`;
+          }
+        );
+
+        // Handle <li> tags
+        rawMessage = rawMessage.replace(
+          /<li>(.*?)<\/li>/gi,
+          (match, content) => {
+            return `<li style="margin-left: 1.5em;">• ${content}</li>`;
+          }
+        );
+
+        const processor = unified()
+          .use(remarkParse)
+          .use(remarkRehype, { allowDangerousHtml: true })
+          .use(rehypeRaw)
+          .use(rehypeFormat)
+          .use(rehypeStringify);
+
+        const result = await processor.process(rawMessage);
+        return result.value;
+      }
+    }
+
+    const openChatBtn = document.getElementById("openChatBtn");
+    const closeChatBtn = document.getElementById("closeChatBtn");
+    const chatContainer = document.getElementById("chatMessages");
+    const messageInput = document.getElementById("messageInput");
+
+    const chatbot = new Chatbot(chatContainer);
+
+    openChatBtn.addEventListener("click", function () {
+      document.getElementById("chatContainer").classList.add("open");
+    });
+
+    closeChatBtn.addEventListener("click", function () {
+      document.getElementById("chatContainer").classList.remove("open");
+    });
+
+    function sendMessage() {
+      const userMessage = messageInput.value;
+      messageInput.value = "";
+      chatbot.sendMessage(userMessage);
+    }
+
+    messageInput.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        sendMessage();
+      }
+    });
+
+    window.sendMessage = sendMessage;
+  </script>
+  <title>NCC Chatbot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 0;
+      /* overflow: hidden; */
+    }
+
+    /* NCC Header Styles */
+    .ncc-header {
+      background-color: #004479;
+      color: #fff;
+      padding: 1em 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ncc-header .ncc-logo {
+      width: 50px;
+      height: auto;
+      margin-left: 20px;
+    }
+
+    .ncc-nav ul {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      gap: 1em;
+      margin-right: 20px;
+    }
+
+    .ncc-nav a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    /* Main Content Styles */
+    .hero {
+      background-color: #004479;
+      padding: 2em 0;
+      text-align: center;
+    }
+
+    .updates {
+      padding: 2em 0;
+    }
+
+    .updates ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .updates li {
+      margin-bottom: 1em;
+    }
+
+    .updates a {
+      text-decoration: none;
+      color: #004479;
+      font-weight: bold;
+    }
+
+    .updates span {
+      display: block;
+      font-size: 0.9em;
+      color: #666;
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 400px;
+      height: 500px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      transition: all 0.3s ease-in-out;
+      visibility: hidden;
+      opacity: 0;
+    }
+
+    .chat-container.open {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .chat-header {
+      background-color: #004479;
+      color: #fff;
+      padding: 1.3em 1em;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-radius: 10px 10px 0 0;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .chat-input {
+      display: flex;
+      padding: 10px;
+      border-radius: 0 0 10px 10px;
+      background-color: #f0f0f0;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #fff;
+      border-radius: 20px;
+    }
+
+    .chat-input button {
+      padding: 5px 5px;
+      background-color: #f0f0f0;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      margin-left: 10px;
+      cursor: pointer;
+    }
+
+    .message {
+      margin-bottom: 10px;
+      word-wrap: break-word;
+      display: inline-block;
+      padding: 10px;
+      border-radius: 16px;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 0.5s ease forwards;
+    }
+
+    .message a {
+      text-decoration: underline;
+      color: #0066cc;
+    }
+
+    .message ul {
+      margin: 0;
+      padding: 0;
+      list-style-type: none;
+    }
+
+    .message.received {
+      background-color: #f2f7fb;
+      color: #000;
+      align-self: flex-start;
+      padding: 1em 2em;
+      border-radius: 0px 89px 89px 89px;
+      -webkit-border-radius: 0px 89px 89px 89px;
+      -moz-border-radius: 0px 89px 89px 89px;
+      display: flex-col;
+      align-items: center;
+      justify-items: center;
+      margin-top: -10px;
+    }
+
+    .message.sent {
+      background-color: #004479;
+      color: #fff;
+      align-self: flex-end;
+      padding: 1em 2em;
+      border-radius: 56px 56px 0px 57px;
+    }
+
+    .ai-robot {
+      width: 60px;
+      height: 60px;
+      margin-right: 10px;
+    }
+
+    @keyframes fadeUp {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .floating-button {
+      position: fixed;
+      bottom: 10px;
+      right: 20px;
+      background-color: #004479;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .floating-button:hover {
+      background-color: #00335d;
+    }
+
+    .close-button {
+      background-color: #004479;
+      color: #fff;
+      border: none;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 600px) {
+      .chat-container {
+        width: 90%;
+        bottom: 20px;
+        right: 5%;
+      }
+    }
+
+    .ncc-logo {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+    }
+
+    .header-title {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .space {
+      margin-top: 10px;
+    }
+
+    /* Hero Section */
+    .hero {
+      background: url("ncc-banner.jpg") no-repeat center center/cover;
+      color: white;
+      text-align: center;
+      padding: 4em 0;
+    }
+
+    .hero h1 {
+      font-size: 2.5em;
+      margin-bottom: 0.5em;
+      color: #004479;
+
+    }
+
+    .hero p {
+      font-size: 1.2em;
+      max-width: 600px;
+      margin: 0 auto;
+      color: #004479;
+    }
+
+
+    /* Updates Section */
+    .updates {
+      background: #fff;
+      padding: 2em 0;
+    }
+
+    .updates h2 {
+      text-align: center;
+      margin-bottom: 1.5em;
+    }
+
+    .updates ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .updates li {
+      margin-bottom: 1em;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .updates a {
+      text-decoration: none;
+      color: #004479;
+      font-weight: bold;
+    }
+
+    .updates span {
+      display: block;
+      font-size: 0.9em;
+      color: #666;
+    }
+
+
+    /* Footer */
+    .ncc-footer {
+      background: #004479;
+      color: white;
+      text-align: center;
+      padding: 1.5em 0;
+      margin-top: 2em;
+    }
+
+    .ncc-footer p {
+      margin: 0;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- NCC Header -->
+  <header class="ncc-header">
+    <img src="ncc-logo.png" alt="NCC Logo" class="ncc-logo" />
+    <nav class="ncc-nav">
+      <ul>
+        <li><a href="#">About NCC</a></li>
+        <li><a href="#">Licensing & Regulation</a></li>
+        <li><a href="#">Consumer Affairs</a></li>
+        <li><a href="#">Statistics & Reports</a></li>
+        <li><a href="#">Media Centre</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <h1>Ensuring a Robust Telecommunications Industry</h1>
+      <p>Your trusted partner in telecommunications regulation in Nigeria.</p>
+    </div>
+  </section>
+
+  <!-- Latest News -->
+  <section class="updates">
+    <div class="container">
+      <h2>Latest Updates</h2>
+      <ul>
+        <li>
+          <a href="#">NCC Approves Tariff Adjustments by Operators</a>
+          <span>January 20, 2025</span>
+        </li>
+        <li>
+          <a href="#">NCC Pre-Enforcement Action on Starlink Over Price Hike</a>
+          <span>October 08, 2024</span>
+        </li>
+        <li>
+          <a href="#">Final Deadline for NIN-SIM Linkage Compliance</a>
+          <span>August 28, 2024</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="ncc-footer">
+    <p>© 2025 Nigerian Communications Commission. All rights reserved.</p>
+  </footer>
+
+  <button class="floating-button" id="openChatBtn">💬</button>
+
+  <div class="chat-container" id="chatContainer">
+    <div class="chat-header">
+      <div class="header-title">
+        <img src="../static/ncc-logo.jpeg" alt="ncc-logo" class="ncc-logo" />
+        <span>NCC Chatbot</span>
+      </div>
+      <button class="close-button" id="closeChatBtn">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#ffffff"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="space"></div>
+      <div class="message received">
+        <div>Hello! How can I help you today?</div>
+      </div>
+    </div>
+    <div class="chat-input">
+      <input type="text" id="messageInput" placeholder="Type a message..." aria-label="Type a message" />
+      <button type="button" class="send-button" onclick="sendMessage()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#00335d">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M22 2L11 13M22 2L15 22L11 13M22 2L2 11L11 13" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</body>
+
+</html>
