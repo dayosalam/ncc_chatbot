@@ -2,12 +2,13 @@
 from dotenv import load_dotenv
 import os
 from helper_functions import *
+from helper_functions import convert_all_docx_in_directory
 import tiktoken
 import matplotlib.pyplot as plt
 from langchain_core.documents import Document
 import os
 from langchain_community.embeddings import OllamaEmbeddings
-from langchain_chroma import Chroma
+# from langchain_chroma import Chroma
 import time
 from langchain.text_splitter import (
     Language,
@@ -25,19 +26,21 @@ from langchain_pinecone import PineconeVectorStore
 # embedding = OllamaEmbeddings(model="mxbai-embed-large")
 
 embedding = OpenAIEmbeddings(
-    model="text-embedding-ada-002")
+    model="text-embedding-3-large")
+source = r"C:\Users\HP\OneDrive\Desktop\ncc\publish" 
+directory = r'c:\Users\HP\OneDrive\Desktop\ncc\publish\FAQs'
 
-
-index_name = "NCC_FAQs"
-
-
+index_name = "nccfaq"
+try:
+    convert_all_docx_in_directory(source, directory)
+except:
+    print("Ignore")
 
 # Define directories for storing vector database and loading document files
 # persist_directory = r'C:\Users\i\Desktop\llm\ncc_doc\ncc_chatbot\my-app\packages\pirate-speak\pirate_speak\vertordb_mx'
 # directory = r'C:\Users\i\Desktop\llm\ncc_doc\publish\FAQs'
 
 
-directory = r'c:\Users\HP\OneDrive\Desktop\ncc\publish\FAQs'
 
 # Set the working directory
 desired_dir = r'c:\Users\HP\OneDrive\Desktop\ncc\ncc_chatbot\my-app\packages\pirate-speak\pirate_speak'
@@ -46,6 +49,7 @@ os.chdir(desired_dir)
 current_dir = os.getcwd()
 
 print(current_dir)
+
 # %%
 # Function to load all .txt files from a specified directory and create Document objects
 def load_knowledge_base(directory):
@@ -170,7 +174,7 @@ def embedding_document(embedding_model):
         print("Done creating Vector database")
         return vectorstore  # Return the created vectorstore
     except IOError:
-        print(f"Error creating or saving vector database at {persist_directory}")
+        print(f"Error creating or saving vector database at")
         return None
 
 # %%

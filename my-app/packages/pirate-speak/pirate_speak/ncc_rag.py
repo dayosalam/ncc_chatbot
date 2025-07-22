@@ -1,4 +1,6 @@
 #%% Import helper functions from pirate_speak module
+import sys
+sys.path.append(r'C:\Users\HP\OneDrive\Desktop\ncc\ncc_chatbot\my-app\packages\pirate-speak')
 from pirate_speak.helper_functions import template_ncc, prompt_ncc, txt_to_docx
 from dotenv import load_dotenv
 from langchain.prompts import ChatPromptTemplate
@@ -11,22 +13,30 @@ from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.prompts import MessagesPlaceholder
+from langchain_pinecone import PineconeVectorStore
+from langchain_openai import OpenAIEmbeddings
+
+
 
 # Load environment variables from a .env file (e.g., API keys)
 load_dotenv()
-
+index_name = "nccfaq"
 # Load the GROQ API key from environment variables or hardcode for testing
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 
 # Initialize a large language model (LLM) with a specific temperature and model using the GROQ API
-llm_groq = ChatGroq(temperature=0, model="llama-3.3-70b-versatile",
+llm_groq = ChatGroq(temperature=0, model="meta-llama/llama-4-maverick-17b-128e-instruct",
                     groq_api_key=GROQ_API_KEY)
 
 # Set up embedding model for vector-based text search
-embedding = OllamaEmbeddings(model="mxbai-embed-large")
+# embedding = OllamaEmbeddings(model="mxbai-embed-large")
+
+embedding = OpenAIEmbeddings(
+    model="text-embedding-3-large")
+
 # Directory path to save and load the vector database
-persist_directory = r'C:\Users\i\Desktop\llm\ncc_doc\ncc_chatbot\my-app\packages\pirate-speak\pirate_speak\vertordb_mx'
+# persist_directory = r'C:\Users\i\Desktop\llm\ncc_doc\ncc_chatbot\my-app\packages\pirate-speak\pirate_speak\vertordb_mx'
 # Define the initial question or query to process
 question = "Non-Commercial/Closed User Radio Networks for Non-Telecoms Companies"
 
@@ -38,7 +48,7 @@ def format_docs(docs):
 
 
 # Function to initialize a retriever using the embedding model and vector database
-def retriever(embedding_model, persist_directory):
+def retriever(embedding_model):
     """
     Loads a vector store from disk and creates a retriever.
     
@@ -50,8 +60,10 @@ def retriever(embedding_model, persist_directory):
         A retriever object to search the vector store.
     """
     # Initialize vector store from the specified directory with the embedding model
-    vectorstore = Chroma(persist_directory=persist_directory,
-                         embedding_function=embedding)
+    # vectorstore = Chroma(persist_directory=persist_directory,
+    #                      embedding_function=embedding)
+    vectorstore = PineconeVectorStore(index_name=index_name,
+            embedding=embedding_model)
     # Set up a retriever to return the top 3 results for each search
     retriever = vectorstore.as_retriever(search_kwargs={'k': 3})
 
@@ -109,9 +121,10 @@ def write_to_docx(result):
 
 #%%
 # Instantiate the retriever with the embedding model and persistent directory
-retriever = retriever(embedding, persist_directory)
+retriever = retriever(embedding)
 # Test the retriever with a question and save the result(uncomment when debugging)
 # result = debugging_testing(retriever, question) 
+# print(result)
 # write_to_docx(result)  # Uncomment when debugging to enable writing to .docx
 
 
@@ -135,7 +148,7 @@ memory = ConversationBufferMemory(return_messages=True)
 # Create a chain of runnables to execute the retrieval and LLM response steps
 rag_chain = (
     RunnablePassthrough.assign(
-        context=retriever,  # Set retriever context
+        context=RunnableLambda(lambda x: retriever.get_relevant_documents(x["question"])),  # Set retriever context
         history=RunnableLambda(
             lambda x: memory.load_memory_variables(x)["history"])  # Load conversation history
     )
@@ -145,6 +158,6 @@ rag_chain = (
 )
 
 # Invoke the retrieval and generation process with the initial question
-# print(rag_chain.invoke({"question": question}))
+print(rag_chain.invoke({"question": question}))
 
 
