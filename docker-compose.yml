@@ -1,0 +1,13 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      NCC_SOURCE_DOCUMENTS_DIR: /app/packages/pirate-speak/pirate_speak/source_documents
+    volumes:
+      - ./.env:/app/.env:ro
+      - ./my-app/packages/pirate-speak/pirate_speak/source_documents:/app/packages/pirate-speak/pirate_speak/source_documents:ro
+      - ./my-app/packages/pirate-speak/pirate_speak/vertordb_mx:/app/packages/pirate-speak/pirate_speak/vertordb_mx

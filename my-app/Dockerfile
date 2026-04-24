@@ -1,20 +1,18 @@
 FROM python:3.11-slim
 
-RUN pip install poetry==1.6.1
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-RUN poetry config virtualenvs.create false
+WORKDIR /app
 
-WORKDIR /code
+COPY ./requirements.txt /app/requirements.txt
+COPY ./packages/pirate-speak /app/packages/pirate-speak
 
-COPY ./pyproject.toml ./README.md ./poetry.lock* ./
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r /app/requirements.txt \
+    && pip install --no-cache-dir -e /app/packages/pirate-speak
 
-COPY ./package[s] ./packages
-
-RUN poetry install  --no-interaction --no-ansi --no-root
-
-COPY ./app ./app
-
-RUN poetry install --no-interaction --no-ansi
+COPY ./app /app/app
 
 EXPOSE 8080
 
